@@ -18,7 +18,7 @@ int main() {
 
 %}
 
-%token PROGRAM IDENTIFIER SEMICOLON DOT CONSTANTS EQUALS NUMBER TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV 
+%token PROGRAM IDENTIFIER SEMICOLON DOT CONSTANTS EQUALS NUMBER TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN ELSE EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV 
 
 %%
 
@@ -100,14 +100,36 @@ indexExprList: indexExprList COMMA expr
              | expr
 fieldDesignator: variableAccess DOT IDENTIFIER
 
-ioStmt: /* empty */
+ioStmt: PRINT PAR_ON variableAccess PAR_OFF
+      | READ PAR_ON variableAccess PAR_OFF
 
-procStmt: /* empty */
+procStmt: IDENTIFIER params
+params: PAR_ON paramList PAR_OFF
+      | PAR_ON PAR_OFF
+paramList: paramList COMMA expr 
+         | expr
 
-ifStmt: /* empty */
+ifStmt: IF condExpr THEN stmt
+      | IF condExpr THEN stmt ELSE stmt
 
-whileStmt: /* empty */
+whileStmt: WHILE condExpr DO stmt
 
-forStmt: /* empty */
+condExpr: expr relop expr
+        | expr 
+relop: EQ | NEQ | GT | LT | GEQ | LEQ
 
-expr: /* empty */
+forStmt: FOR IDENTIFIER COLON_EQ expr direction expr DO stmt
+direction: UPTO | DOWNTO
+
+expr: expr PLUS term
+    | expr MINUS term
+    | term
+term: term MULT factor 
+    | term DIV factor
+    | factor
+factor: PAR_ON expr PAR_OFF
+      | functionCall
+      | variableAccess
+      | NUMBER
+
+functionCall: IDENTIFIER params

@@ -39,6 +39,19 @@ function fn(x : integer) : integer;
 forward;
 
 {
-    xd := 
+    xd := 3;
+    a := 5;
+    read(a);
+    print(xd);
+    {
+        nested := 1;
+        works := 1
+    };
+
+    qwe(xd, a);
+    if 3 < 5 then print(a);
+    if 3 > 5 then print(a) else read(b);
+    while 1 do a := a + 1;
+    for n := 0 upto 10 do print(a)
 }
 .

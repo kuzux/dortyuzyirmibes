@@ -36,6 +36,7 @@ while                   return WHILE;
 do                      return DO;
 if                      return IF;
 then                    return THEN;
+else                    return ELSE;
 ==                      return EQ;
 !=                      return NEQ;
 \<                      return LT;
