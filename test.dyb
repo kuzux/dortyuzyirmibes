@@ -1,0 +1,44 @@
+program test;
+constants
+    anan = 42;
+    xd = 42;
+types
+    test integer;
+    yup array[3] of integer;
+    rec record
+        x : integer;
+        y : integer;
+        a : array[3] of integer;
+        b : record
+            x : integer;
+            y : integer
+        end;
+        c : array[3] of record
+            x : integer;
+            y : integer
+        end
+    end;
+var
+    x : integer;
+    y,z : integer;
+    pts : array[42] of record
+        x : integer;
+        y : integer
+    end;
+
+procedure asd; 
+forward;
+
+procedure qwe(x : integer; y : integer);
+forward;
+
+function zxc : integer;
+forward;
+
+function fn(x : integer) : integer;
+forward;
+
+{
+    xd := 
+}
+.

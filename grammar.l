@@ -4,6 +4,8 @@
 #include "grammar.tab.h"
 %}
 
+%option yylineno
+
 %%
 program                 return PROGRAM;
 ;                       return SEMICOLON;
@@ -11,6 +13,7 @@ program                 return PROGRAM;
 constants               return CONSTANTS;
 =                       return EQUALS;
 types                   return TYPES;
+integer                 return INTEGER;
 array                   return ARRAY;
 \[                      return SQBR_ON;
 \]                      return SQBR_OFF;
@@ -19,6 +22,7 @@ record                  return RECORD;
 end                     return END;
 :                       return COLON;
 ,                       return COMMA;
+var                     return VAR;
 forward                 return FORWARD;
 procedure               return PROCEDURE;
 function                return FUNCTION;
@@ -52,4 +56,5 @@ downto                  return DOWNTO;
 
 \n                      ; /* ignore newline */
 [ \t]                   ; /* ignore whitespace */
+
 %%
