@@ -10,11 +10,6 @@ void yyerror(const char *str) {
 int yywrap() {
     return 1;
 } 
-  
-int main() {
-    yyparse();
-    return 0;
-} 
 
 %}
 
