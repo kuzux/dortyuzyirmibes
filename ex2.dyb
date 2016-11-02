@@ -1,0 +1,23 @@
+program persondata1 ;
+types
+ person = record
+ number, age : integer
+ end ;
+var
+ x : person ;
+procedure enter(var p : person) ;
+ var
+ x,y: integer ;
+ {
+ read(p.number) ;
+ read(p.age) ;
+ x = 10 ;
+ y = 12
+ } ;
+{
+ x.number = 10 ;
+ x.age = 20 ;
+enter(x) ;
+ print(x.number) ;
+ print(x.age)
+}.

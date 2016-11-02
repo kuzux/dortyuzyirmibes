@@ -1,0 +1,22 @@
+program persondata3 ;
+types
+ person = record
+ number, age : integer
+ end ;
+ vec = array[3] of person ;
+var
+ x : vec ;
+procedure enter(var v : vec) ;
+ var
+ i: integer ;
+ {
+ for i := 2 downto 0 do {
+ read(v[i].number) ;
+ read(v[i].age)
+ }
+ } ;
+{
+ enter(x) ;
+ print(v[0].number) ;
+ print(v[2].age)
+}.

@@ -51,6 +51,7 @@ downto                  return DOWNTO;
 \-                      return MINUS;
 \*                      return MULT;
 \/                      return DIV;
+\%                      return MOD;
 
 [a-zA-Z_][a-zA-Z_0-9]*  return IDENTIFIER;
 [0-9]+                  return NUMBER;

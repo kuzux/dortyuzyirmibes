@@ -1,0 +1,15 @@
+program divisors ;
+constants
+ zero = 0 ;
+ two = 2 ;
+var
+ number, divisor : integer ;
+{
+ read(number) ;
+ while number > zero do {
+ for divisor := two upto number do {
+ if (number % divisor) == 0 then
+ print(divisor)
+ }
+ }
+}.

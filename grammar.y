@@ -13,7 +13,7 @@ int yywrap() {
 
 %}
 
-%token PROGRAM IDENTIFIER SEMICOLON DOT CONSTANTS EQUALS NUMBER TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN ELSE EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV 
+%token PROGRAM IDENTIFIER SEMICOLON DOT CONSTANTS EQUALS NUMBER TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN ELSE EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV MOD
 
 %%
 
@@ -33,8 +33,9 @@ typeDefns: /* empty */
          | TYPES typeList
 typeList: typeList typeDefn 
         | typeDefn
-typeDefn: IDENTIFIER typeDenoter SEMICOLON
+typeDefn: IDENTIFIER EQUALS typeDenoter SEMICOLON
 typeDenoter: INTEGER
+           | IDENTIFIER
            | newType
 newType: arrayType
        | recordType
@@ -42,14 +43,16 @@ arrayType: ARRAY SQBR_ON NUMBER SQBR_OFF OF typeDenoter
 recordType: RECORD recordItemList END
 recordItemList: recordItemList SEMICOLON recordItem 
               | recordItem
+              | error
 recordItem: identifierList COLON typeDenoter
 identifierList: identifierList COMMA IDENTIFIER
               | IDENTIFIER
 
 varDefns: /* empty */
-        | VAR varDefnList SEMICOLON
-varDefnList: varDefnList SEMICOLON varDefn
-           | varDefn 
+        | VAR varDefnList
+varDefnList: varDefnList varDefn
+           | varDefn SEMICOLON
+           | error SEMICOLON
 varDefn: identifierList COLON typeDenoter
 
 procFuncDefns: /* empty */
@@ -70,6 +73,7 @@ returnType: INTEGER
 formalParamList: PAR_ON formalParamSecList PAR_OFF
 formalParamSecList: formalParamSecList SEMICOLON formalParam
                   | formalParam
+                  | error 
 formalParam: valueParam 
            | variableParam
 valueParam: identifierList COLON returnType
@@ -78,6 +82,7 @@ variableParam: VAR identifierList COLON returnType
 stmts: CURLY_ON stmtList CURLY_OFF
 stmtList: stmtList SEMICOLON stmt 
         | stmt
+        | error
 stmt: assignmentStmt
     | ioStmt
     | procStmt
@@ -86,15 +91,18 @@ stmt: assignmentStmt
     | whileStmt
     | forStmt
 
-assignmentStmt: variableAccess COLON_EQ expr
+assignmentStmt: variableAccess EQUALS expr
 variableAccess: IDENTIFIER
               | indexedVariable
               | fieldDesignator
+
 indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF
 indexExprList: indexExprList COMMA expr 
              | expr
-fieldDesignator: variableAccess DOT IDENTIFIER
+             | error
 
+fieldDesignator: variableAccess DOT IDENTIFIER
+               | variableAccess DOT error
 ioStmt: PRINT PAR_ON variableAccess PAR_OFF
       | READ PAR_ON variableAccess PAR_OFF
 
@@ -121,10 +129,12 @@ expr: expr PLUS term
     | term
 term: term MULT factor 
     | term DIV factor
+    | term MOD factor
     | factor
 factor: PAR_ON expr PAR_OFF
       | functionCall
       | variableAccess
       | NUMBER
+      | error
 
 functionCall: IDENTIFIER params
