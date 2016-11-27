@@ -1,1 +1,12 @@
 Class project for Cmpe425 compiler construction class
+
+To build; run make. Then run `compiler filename`. The current version accepts the given example files.
+
+The Test Environment is;
+- OS: OSX 10.10.5 Yosemite
+- C compiler: Apple LLVM version 7.0.2
+- lex: flex 2.5.35 Apple(flex-31)
+- yacc: bison (GNU Bison) 2.3
+- make: GNU Make 3.81
+
+Also note that this is a group project, shared by Arda Cinar and Mert Cem Tasdemir
