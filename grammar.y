@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include "ast.h"
  
 void yyerror(const char *str) {
     extern int yylineno;
