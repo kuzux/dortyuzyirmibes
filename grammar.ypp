@@ -1,7 +1,10 @@
 %{
 #include <stdio.h>
 #include <string.h>
+
+#include <string>
 #include "ast.h"
+
 extern "C" {
 
 int yylex();
@@ -15,11 +18,19 @@ int yywrap() {
     return 1;
 } 
 
+typedef struct lval {
+    char* str;
+    int n;
+    ast_node_t* node;
+} lval_t;
+
+#define YYSTYPE lval_t
+
 }
 
 %}
 
-%token PROGRAM IDENTIFIER SEMICOLON DOT CONSTANTS EQUALS NUMBER TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN ELSE EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV MOD
+%token PROGRAM SEMICOLON DOT CONSTANTS EQUALS TYPES INTEGER ARRAY SQBR_ON SQBR_OFF OF RECORD END COLON COMMA VAR FORWARD PROCEDURE FUNCTION PAR_ON PAR_OFF CURLY_ON CURLY_OFF PRINT READ WHILE DO IF THEN ELSE EQ NEQ LT GT LEQ GEQ FOR COLON_EQ UPTO DOWNTO PLUS MINUS MULT DIV MOD NUMBER IDENTIFIER
 
 %%
 
@@ -143,4 +154,4 @@ factor: PAR_ON expr PAR_OFF
       | NUMBER
       | error
 
-functionCall: IDENTIFIER params
+functionCall: IDENTIFIER params { $$.node = fn_call($1.str); }

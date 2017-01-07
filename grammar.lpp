@@ -1,4 +1,14 @@
 %{
+#include "ast.h"
+
+#define YYSTYPE lval_t
+
+typedef struct lval {
+    char* str;
+    int n;
+    ast_node_t* node;
+} lval_t;
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "grammar.tab.hpp"
@@ -6,7 +16,9 @@
 extern "C" {
     int yylex();
 }
+
 %}
+
 
 %option yylineno
 
@@ -57,7 +69,10 @@ downto                  return DOWNTO;
 \/                      return DIV;
 \%                      return MOD;
 
-[a-zA-Z_][a-zA-Z_0-9]*  return IDENTIFIER;
+[a-zA-Z_][a-zA-Z_0-9]*  {
+    yylval.str = strdup(yytext);
+    return IDENTIFIER;
+}
 [0-9]+                  return NUMBER;
 
 \n                      ; /* ignore newline */
