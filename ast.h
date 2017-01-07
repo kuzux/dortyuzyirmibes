@@ -58,19 +58,19 @@ typedef struct ast_node {
     union {
         // todo add more structs for the ast
         struct {
-            /* those are all linked lists */
-            struct ast_node* consts;
-            struct ast_node* types;
-            struct ast_node* vars;
-            struct ast_node* funcs;
+            string name;
 
-            struct ast_node* stmts;
+            vector<struct ast_node*>* consts;
+            vector<struct ast_node*>* types;
+            vector<struct ast_node*>* vars;
+            vector<struct ast_node*>* funcs;
+
+            vector<struct ast_node*>* stmts;
         } prog;
 
         struct {
-            void* vars;
-
-            struct ast_node* stmts;
+            vector<struct ast_node*>* vars;
+            vector<struct ast_node*>* stmts;
         } block;
 
         struct {
@@ -84,17 +84,18 @@ typedef struct ast_node {
 
         struct {
             struct ast_node* cond;
-            struct ast_node* stmts;
+            struct ast_node* stmt;
         } if_, while_;
 
         struct {
             struct ast_node* start;
             char* direction;
             struct ast_node* end;
+            struct ast_node* stmt;
         } for_;
 
         struct {
-            struct ast_node* stmts;
+            vector<struct ast_node*>* stmts;
         } stmt_block;
 
         struct {
@@ -121,7 +122,7 @@ typedef struct ast_node {
 
         struct {
             string name;
-            vector<struct ast_node*> params;
+            vector<struct ast_node*>* params;
             type_t type;
         } fn_call;
 
@@ -132,7 +133,7 @@ typedef struct ast_node {
 
         struct {
             struct ast_node* var_access;
-            vector<struct ast_node*> indices;
+            vector<struct ast_node*>* indices;
 
             type_t type;
         } indexed_var;
@@ -150,11 +151,11 @@ extern "C" {
 
 // todo add more constructor functions for the ast stuff
 
-ast_node_t* field_node(ast_node_t* n, string& field);
-ast_node_t* indexed_node(ast_node_t* v, vector<int>& i);
+ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts);
+
+ast_node_t* field_node(ast_node_t* n, char* field);
+ast_node_t* indexed_node(ast_node_t* n, vector<ast_node_t*>* ns);
 ast_node_t* var_access(char* ident);
-ast_node_t* varacc_field(ast_node_t* n, char* mem);
-ast_node_t* varacc_index(ast_node_t* n, vector<ast_node_t*>* ns);
 ast_node_t* fn_call(char* fn, vector<ast_node_t*>* ns);
 ast_node_t* factor_paren(ast_node_t* ex);
 ast_node_t* factor_fn(ast_node_t* call);
