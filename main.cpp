@@ -18,6 +18,11 @@ int main(int argc, char** argv) {
     yyin = fp;
 
     yyparse();
+    // todo store the root of the ast somewhere
+    // todo generate some kind of a symbol table
+    // todo calculate types
+    // todo check types
+    // todo actually generate llvm code
 
     fclose(fp);
     return 0;

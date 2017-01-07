@@ -38,11 +38,25 @@ using namespace std;
 #define TYPE_ARRAY 2
 #define TYPE_RECORD 3
 
+typedef struct type {
+    int8_t type;
+
+    union {
+        string name;
+
+        struct {
+            string name;
+            int len;
+        } array;
+    } val;
+} type_t;
+
 /* tagged union type for ast node */
 typedef struct ast_node {
     int8_t type;
 
     union {
+        // todo add more structs for the ast
         struct {
             /* those are all linked lists */
             struct ast_node* consts;
@@ -87,12 +101,14 @@ typedef struct ast_node {
             struct ast_node* expr;
             struct ast_node* term;
             char op;
+            type_t type;
         } expr;
 
         struct {
             struct ast_node* term;
             struct ast_node* factor;
             char op;
+            type_t type;
         } term;
 
         struct {
@@ -100,50 +116,46 @@ typedef struct ast_node {
             struct ast_node* fn_call;
             struct ast_node* var_access;
             int number;
+            type_t type;
         } factor;
 
         struct {
             string name;
             vector<struct ast_node*> params;
+            type_t type;
         } fn_call;
 
         struct {
             string ident;
+            type_t type;
         } plain_var;
 
         struct {
             struct ast_node* var_access;
             vector<struct ast_node*> indices;
+
+            type_t type;
         } indexed_var;
 
         struct {
             struct ast_node* var;
             string field;
+
+            type_t type;
         } field;
     } val;
 } ast_node_t;
 
-typedef struct type {
-    int8_t type;
-
-    union {
-        string name;
-
-        struct {
-            string name;
-            int len;
-        } array;
-    } val;
-} type_t;
-
 extern "C" {
+
+// todo add more constructor functions for the ast stuff
 
 ast_node_t* field_node(ast_node_t* n, string& field);
 ast_node_t* indexed_node(ast_node_t* v, vector<int>& i);
-ast_node_t* var_access(string& ident);
-ast_node_t* varacc_field(ast_node_t* n);
-ast_node_t* varacc_index(ast_node_t* n);
-ast_node_t* fn_call(char* fn);
+ast_node_t* var_access(char* ident);
+ast_node_t* varacc_field(ast_node_t* n, char* mem);
+ast_node_t* varacc_index(ast_node_t* n, vector<ast_node_t*>* ns);
+ast_node_t* fn_call(char* fn, vector<ast_node_t*>* ns);
 ast_node_t* factor_paren(ast_node_t* ex);
 ast_node_t* factor_fn(ast_node_t* call);
 ast_node_t* factor_varacc(ast_node_t* acc);
