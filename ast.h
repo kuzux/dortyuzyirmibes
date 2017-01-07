@@ -3,6 +3,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <vector>
+#include <string>
+using namespace std;
 
 #define NODE_PROG -1
 #define NODE_BLOCK -2
@@ -26,6 +29,14 @@
 #define NODE_FIELD -17
 
 #define NODE_EXPR -18
+#define NODE_TERM -19
+#define NODE_FACTOR -20
+
+#define NODE_FNCALL -21
+
+#define TYPE_INT 1
+#define TYPE_ARRAY 2
+#define TYPE_RECORD 3
 
 /* tagged union type for ast node */
 typedef struct ast_node {
@@ -69,14 +80,60 @@ typedef struct ast_node {
         } for_;
 
         struct {
-            char* fn_name;
-            struct ast_node* args;
+            struct ast_node* stmts;
+        } stmt_block;
+
+        struct {
+            struct ast_node* expr;
+            struct ast_node* term;
+            char op;
+        } expr;
+
+        struct {
+            struct ast_node* term;
+            struct ast_node* factor;
+            char op;
+        } term;
+
+        struct {
+            struct ast_node* expr;
+            struct ast_node* fn_call;
+            struct ast_node* var_access;
+            int number;
+        } factor;
+
+        struct {
+            string name;
+            vector<struct ast_node*> params;
         } fn_call;
 
         struct {
-            struct ast_node* stmts;
-        } stmt_block;
+            string ident;
+        } plain_var;
+
+        struct {
+            struct ast_node* var_access;
+            vector<struct ast_node*> indices;
+        } indexed_var;
+
+        struct {
+            struct ast_node* var;
+            string field;
+        } field;
     } val;
 } ast_node_t;
+
+typedef struct type {
+    int8_t type;
+
+    union {
+        string name;
+
+        struct {
+            string name;
+            int len;
+        } array;
+    } val;
+} type_t;
 
 #endif
