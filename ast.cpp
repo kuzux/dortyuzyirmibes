@@ -12,6 +12,13 @@ map<string, type_t> vars;
 map<string, type_t> fn_types;
 map<string, map<string, type_t> > record_fields;
 
+void copy_types(type_t& t1, type_t& t2) {
+    // that doesn't work with function types
+    t1.type = t2.type;
+    t1.val.array.len = t2.val.array.len;
+    t1.val.array.name = t2.val.array.name;
+}
+
 ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts) {
     return NULL;
 }
@@ -20,6 +27,8 @@ ast_node_t* field_node(ast_node_t* n, char* field){
     ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
 
     res->type = NODE_FIELD;
+
+    res->val.field.var_type = VAR_PLAIN;
 
     res->val.field.var = n;
     res->val.field.field = std::string(field);
@@ -36,6 +45,8 @@ ast_node_t* indexed_node(ast_node_t* n, vector<ast_node_t*>* ns){
 
     res->type = NODE_INDEXED_VAR;
 
+    res->val.field.var_type = VAR_INDEXED;
+
     res->val.indexed_var.var_access = n;
     res->val.indexed_var.indices = ns;
 
@@ -47,14 +58,14 @@ ast_node_t* var_access(char* ident){
 
     res->type = NODE_PLAIN_VAR;
 
+    res->val.field.var_type = VAR_PLAIN;
+
     res->val.plain_var.ident = ident;
 
     map<string, type_t>::iterator it = vars.find(string(ident));
 
     if(it != vars.end()) {
-        res->val.plain_var.type.type = it->second.type;
-        res->val.plain_var.type.val.array.len = it->second.val.array.len;
-        res->val.plain_var.type.val.array.name = it->second.val.array.name;
+        copy_types(res->val.plain_var.type, it->second);
     } else {
         cout << "Variable " << ident << " not found" << endl;
         exit(1);
@@ -84,6 +95,8 @@ ast_node_t* factor_paren(ast_node_t* ex){
     res->val.factor.var_access = NULL;
     res->val.factor.number = 0;
 
+    copy_types(res->val.factor.type, ex->val.expr.type);
+
     return res;
 }
 
@@ -109,6 +122,19 @@ ast_node_t* factor_varacc(ast_node_t* acc){
     res->val.factor.fn_call = NULL;
     res->val.factor.var_access = acc;
     res->val.factor.number = 0;
+
+    switch(acc->val.plain_var.var_type) {
+        case VAR_PLAIN:
+            copy_types(res->val.factor.type, acc->val.plain_var.type);
+            break;
+        case VAR_INDEXED:
+            copy_types(res->val.factor.type, acc->val.indexed_var.type);
+            break;
+        case VAR_FIELD:
+            copy_types(res->val.factor.type, acc->val.field.type);
+            break;
+    }
+    
 
     return res;
 }

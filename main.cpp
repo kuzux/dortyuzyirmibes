@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     // todo generate some kind of a symbol table
     // (preferably while parsing)
 
-    type_calc(root);
+    // type_calc done while parsing
     type_check(root);
 
     // todo calculate types

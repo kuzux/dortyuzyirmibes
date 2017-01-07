@@ -39,6 +39,10 @@ using namespace std;
 #define TYPE_RECORD 3
 #define TYPE_FUNCTION 4
 
+#define VAR_PLAIN 1
+#define VAR_INDEXED 2
+#define VAR_FIELD 3
+
 typedef struct type_st {
     int8_t type;
 
@@ -138,11 +142,17 @@ typedef struct ast_node {
         } fn_call;
 
         struct {
+            // var_type is always the first element of the struct
+            // so it should work in a union
+            int var_type;
+
             string ident;
             type_t type;
         } plain_var;
 
         struct {
+            int var_type;
+
             struct ast_node* var_access;
             vector<struct ast_node*>* indices;
 
@@ -150,6 +160,8 @@ typedef struct ast_node {
         } indexed_var;
 
         struct {
+            int var_type;
+
             struct ast_node* var;
             string field;
 
