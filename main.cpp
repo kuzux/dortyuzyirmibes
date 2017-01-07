@@ -2,8 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ast.h"
+#include "types.h"
+
 extern int yyparse();
 extern FILE* yyin;
+
+// todo in the parser, actually set the root node
+extern ast_node_t* root;
 
 int main(int argc, char** argv) {
     if(argc < 2){
@@ -18,8 +24,12 @@ int main(int argc, char** argv) {
     yyin = fp;
 
     yyparse();
-    // todo store the root of the ast somewhere
     // todo generate some kind of a symbol table
+    // (preferably while parsing)
+
+    type_calc(root);
+    type_check(root);
+
     // todo calculate types
     // todo check types
     // todo actually generate llvm code

@@ -28,6 +28,8 @@ typedef struct lval {
 
 #define YYSTYPE lval_t
 
+ast_node_t* root;
+
 }
 
 %}
