@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <string>
+#include <vector>
 #include "ast.h"
 
 extern "C" {
@@ -22,6 +23,7 @@ typedef struct lval {
     char* str;
     int n;
     ast_node_t* node;
+    std::vector<ast_node_t*>* ns;
 } lval_t;
 
 #define YYSTYPE lval_t
@@ -109,25 +111,25 @@ stmt: assignmentStmt
     | forStmt
 
 assignmentStmt: variableAccess EQUALS expr
-variableAccess: IDENTIFIER
-              | indexedVariable
-              | fieldDesignator
+variableAccess: IDENTIFIER { $$.node = var_access($1.str); }
+              | indexedVariable { $$.node = $1.node; }
+              | fieldDesignator { $$.node = $1.node; }
 
-indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF
-indexExprList: indexExprList COMMA expr 
-             | expr
+indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF { $$.node = varacc_index($1.node, $2.ns); }
+indexExprList: indexExprList COMMA expr { $1.ns->push_back($2.node); }
+             | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
              | error
 
-fieldDesignator: variableAccess DOT IDENTIFIER
+fieldDesignator: variableAccess DOT IDENTIFIER { $$.node = varacc_field($1.node, $2.str); }
                | variableAccess DOT error
 ioStmt: PRINT PAR_ON variableAccess PAR_OFF
       | READ PAR_ON variableAccess PAR_OFF
 
 procStmt: IDENTIFIER params
-params: PAR_ON paramList PAR_OFF
-      | PAR_ON PAR_OFF
-paramList: paramList COMMA expr 
-         | expr
+params: PAR_ON paramList PAR_OFF { $$.ns = $1.ns; }
+      | PAR_ON PAR_OFF { $$.ns = new std::vector<ast_node_t*>; }
+paramList: paramList COMMA expr { $1.ns->push_back($2.node); }
+         | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
 
 ifStmt: IF condExpr THEN stmt
       | IF condExpr THEN stmt ELSE stmt
@@ -141,17 +143,17 @@ relop: EQ | NEQ | GT | LT | GEQ | LEQ
 forStmt: FOR IDENTIFIER COLON_EQ expr direction expr DO stmt
 direction: UPTO | DOWNTO
 
-expr: expr PLUS term
-    | expr MINUS term
-    | term
-term: term MULT factor 
-    | term DIV factor
-    | term MOD factor
-    | factor
-factor: PAR_ON expr PAR_OFF
-      | functionCall
-      | variableAccess
-      | NUMBER
+expr: expr PLUS term { $$.node = expr($1.node, $2.node, '+'); }
+    | expr MINUS term { $$.node = expr($1.node, $2.node, '+'); }
+    | term { $$.node = $1.node; }
+term: term MULT factor { $$.node = term($1.node, $2.node, '*'); }
+    | term DIV factor { $$.node = term($1.node, $2.node, '/'); }
+    | term MOD factor { $$.node = term($1.node, $2.node, '%'); }
+    | factor { $$.node = $1.node; }
+factor: PAR_ON expr PAR_OFF { $$.node = factor_paren($1.node); }
+      | functionCall { $$.node = factor_fn($1.node); }
+      | variableAccess { $$.node = factor_varacc($1.node); }
+      | NUMBER { $$.node = factor_num($1.n); }
       | error
 
-functionCall: IDENTIFIER params { $$.node = fn_call($1.str); }
+functionCall: IDENTIFIER params { $$.node = fn_call($1.str, $2.ns); }
