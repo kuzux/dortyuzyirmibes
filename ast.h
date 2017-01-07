@@ -34,6 +34,10 @@ using namespace std;
 
 #define NODE_FNCALL -21
 
+#define TYPE_INT 1
+#define TYPE_ARRAY 2
+#define TYPE_RECORD 3
+
 /* tagged union type for ast node */
 typedef struct ast_node {
     int8_t type;
@@ -119,5 +123,17 @@ typedef struct ast_node {
     } val;
 } ast_node_t;
 
+typedef struct type {
+    int8_t type;
+
+    union {
+        string name;
+
+        struct {
+            string name;
+            int len;
+        } array;
+    } val;
+} type_t;
 
 #endif

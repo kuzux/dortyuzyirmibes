@@ -3,3 +3,5 @@ compiler
 *.tab.h
 *.tab.c
 *.yy.c
+*.tab.cpp
+*.tab.hpp
