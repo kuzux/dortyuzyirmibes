@@ -38,9 +38,9 @@ ast_node_t* root;
 
 %%
 
-program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT
+program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT { $$ = $4; $$.node->val.prog.name = std::string($2.str); }
 
-progBlock: constantDefns typeDefns varDefns procFuncDefns stmts
+progBlock: constantDefns typeDefns varDefns procFuncDefns stmts { $$.node = prog_node($1.ns, $2.ns, $3.ns, $4.ns, $5.ns); }
 
 block: varDefns stmts
 
@@ -100,7 +100,7 @@ formalParam: valueParam
 valueParam: identifierList COLON returnType
 variableParam: VAR identifierList COLON returnType
 
-stmts: CURLY_ON stmtList CURLY_OFF
+stmts: CURLY_ON stmtList CURLY_OFF 
 stmtList: stmtList SEMICOLON stmt 
         | stmt
         | error
@@ -117,12 +117,12 @@ variableAccess: IDENTIFIER { $$.node = var_access($1.str); }
               | indexedVariable { $$.node = $1.node; }
               | fieldDesignator { $$.node = $1.node; }
 
-indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF { $$.node = varacc_index($1.node, $2.ns); }
+indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF { $$.node = indexed_node($1.node, $2.ns); }
 indexExprList: indexExprList COMMA expr { $1.ns->push_back($2.node); }
              | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
              | error
 
-fieldDesignator: variableAccess DOT IDENTIFIER { $$.node = varacc_field($1.node, $2.str); }
+fieldDesignator: variableAccess DOT IDENTIFIER { $$.node = field_node($1.node, $2.str); }
                | variableAccess DOT error
 ioStmt: PRINT PAR_ON variableAccess PAR_OFF
       | READ PAR_ON variableAccess PAR_OFF
