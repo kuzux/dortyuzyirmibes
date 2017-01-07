@@ -1,7 +1,11 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "grammar.tab.h"
+#include "grammar.tab.hpp"
+
+extern "C" {
+    int yylex();
+}
 %}
 
 %option yylineno

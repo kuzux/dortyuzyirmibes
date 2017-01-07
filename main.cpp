@@ -1,4 +1,4 @@
-#include "grammar.tab.h"
+#include "grammar.tab.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 

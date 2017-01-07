@@ -2,7 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "ast.h"
- 
+extern "C" {
+
+int yylex();
+
 void yyerror(const char *str) {
     extern int yylineno;
     fprintf(stderr,"error: %s at %d\n",str, yylineno);
@@ -11,6 +14,8 @@ void yyerror(const char *str) {
 int yywrap() {
     return 1;
 } 
+
+}
 
 %}
 
