@@ -37,18 +37,29 @@ using namespace std;
 #define TYPE_INT 1
 #define TYPE_ARRAY 2
 #define TYPE_RECORD 3
+#define TYPE_FUNCTION 4
 
-typedef struct type {
+typedef struct type_st {
     int8_t type;
 
-    union {
+    union type_tu {
         string name;
 
-        struct {
+        struct arr{
             string name;
             int len;
+            ~arr(){ };
         } array;
+
+        struct {
+            vector<struct type_st*> args;
+            struct type_st* retval;
+        } fn;
+
+        ~type_tu(){ };
     } val;
+
+    ~type_st(){ };
 } type_t;
 
 /* tagged union type for ast node */

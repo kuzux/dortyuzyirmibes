@@ -1,6 +1,16 @@
 #include "ast.h"
 
 #include <stdlib.h>
+#include <iostream>
+#include <map>
+#include <vector>
+using namespace std;
+
+// symbol tables and stuff
+// we might need to do those in a per-function basis in the future
+map<string, type_t> vars;
+map<string, type_t> fn_types;
+map<string, map<string, type_t> > record_fields;
 
 ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts) {
     return NULL;
@@ -38,6 +48,17 @@ ast_node_t* var_access(char* ident){
     res->type = NODE_PLAIN_VAR;
 
     res->val.plain_var.ident = ident;
+
+    map<string, type_t>::iterator it = vars.find(string(ident));
+
+    if(it != vars.end()) {
+        res->val.plain_var.type.type = it->second.type;
+        res->val.plain_var.type.val.array.len = it->second.val.array.len;
+        res->val.plain_var.type.val.array.name = it->second.val.array.name;
+    } else {
+        cout << "Variable " << ident << " not found" << endl;
+        exit(1);
+    }
 
     return res;
 }
@@ -102,6 +123,8 @@ ast_node_t* factor_num(int n){
     res->val.factor.var_access = NULL;
     res->val.factor.number = n;
 
+    res->val.factor.type.type = TYPE_INT;
+
     return res;
 }
 
@@ -114,6 +137,17 @@ ast_node_t* term(ast_node_t* t, ast_node_t* f, char op){
     res->val.term.factor = f;
     res->val.term.op = op;
 
+    bool t_int = (t->type == NODE_TERM && t->val.term.type.type == TYPE_INT)
+        || (t->type == NODE_FACTOR && t->val.factor.type.type == TYPE_INT);
+    bool f_int = t->val.factor.type.type == TYPE_INT;
+
+    if(t_int && f_int) {
+        res->val.term.type.type = TYPE_INT;
+    } else {
+        cout << "type error" << std::endl;
+        exit(1);
+    }
+
     return res;
 }
 
@@ -125,6 +159,19 @@ ast_node_t* expr(ast_node_t* ex, ast_node_t* t, char op){
     res->val.expr.expr = ex;
     res->val.expr.term = t;
     res->val.expr.op = op;
+
+    bool e_int = (ex->type == NODE_EXPR && ex->val.expr.type.type == TYPE_INT)
+        || (ex->type == NODE_TERM && ex->val.expr.type.type == TYPE_INT)
+        || (ex->type == NODE_FACTOR && ex->val.factor.type.type == TYPE_INT);
+    bool t_int = (t->type == NODE_TERM && t->val.term.type.type == TYPE_INT)
+        || (t->type == NODE_FACTOR && t->val.factor.type.type == TYPE_INT);
+
+    if(t_int && e_int) {
+        res->val.term.type.type = TYPE_INT;
+    } else {
+        cout << "type error" << std::endl;
+        exit(1);
+    }
 
     return res;
 }
