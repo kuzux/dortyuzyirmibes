@@ -145,14 +145,14 @@ relop: EQ | NEQ | GT | LT | GEQ | LEQ
 forStmt: FOR IDENTIFIER COLON_EQ expr direction expr DO stmt
 direction: UPTO | DOWNTO
 
-expr: expr PLUS term { $$.node = expr($1.node, $2.node, '+'); }
-    | expr MINUS term { $$.node = expr($1.node, $2.node, '+'); }
+expr: expr PLUS term { $$.node = expr($1.node, $3.node, '+'); }
+    | expr MINUS term { $$.node = expr($1.node, $3.node, '+'); }
     | term { $$.node = $1.node; }
-term: term MULT factor { $$.node = term($1.node, $2.node, '*'); }
-    | term DIV factor { $$.node = term($1.node, $2.node, '/'); }
-    | term MOD factor { $$.node = term($1.node, $2.node, '%'); }
+term: term MULT factor { $$.node = term($1.node, $3.node, '*'); }
+    | term DIV factor { $$.node = term($1.node, $3.node, '/'); }
+    | term MOD factor { $$.node = term($1.node, $3.node, '%'); }
     | factor { $$.node = $1.node; }
-factor: PAR_ON expr PAR_OFF { $$.node = factor_paren($1.node); }
+factor: PAR_ON expr PAR_OFF { $$.node = factor_paren($2.node); }
       | functionCall { $$.node = factor_fn($1.node); }
       | variableAccess { $$.node = factor_varacc($1.node); }
       | NUMBER { $$.node = factor_num($1.n); }
