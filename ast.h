@@ -50,19 +50,21 @@ typedef struct type_st {
         string name;
 
         struct arr{
-            string name;
+            type_st* elem;
             int len;
             ~arr(){ };
         } array;
 
         struct {
-            vector<struct type_st*> args;
+            vector<struct type_st*>* args;
             struct type_st* retval;
         } fn;
 
+        type_tu(){ };
         ~type_tu(){ };
     } val;
 
+    type_st(){ };
     ~type_st(){ };
 } type_t;
 

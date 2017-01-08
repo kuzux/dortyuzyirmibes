@@ -1,5 +1,5 @@
 BINS=compiler
-OBJS=grammar.o lex.o ast.o types.o main.o
+OBJS=grammar.o lex.o ast.o main.o
 CFLAGS=-O2 -g -std=c++11
 LEX=flex
 YACC=bison
@@ -25,9 +25,6 @@ lex.o: lex.yy.c
 
 ast.o: ast.cpp
 	$(CC) -c $(CFLAGS) $< -o $@
-
-types.o: types.cpp
-	$(CC) -c $(CFLAGS) $< -o $@	
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) $< -c -o $@
