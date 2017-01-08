@@ -7,7 +7,7 @@
 extern int yyparse();
 extern FILE* yyin;
 
-// todo in the parser, actually set the root node
+// assigned in the parser
 extern ast_node_t* root;
 
 int main(int argc, char** argv) {
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
 
     // type_calc done while parsing
     // so is type_check
-    
+
     // todo actually generate llvm code
 
     fclose(fp);
