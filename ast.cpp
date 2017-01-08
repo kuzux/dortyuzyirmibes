@@ -20,7 +20,19 @@ void copy_types(type_t& t1, type_t& t2) {
 }
 
 ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts) {
-    return NULL;
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_FIELD;
+
+    res->val.field.var_type = VAR_PLAIN;
+
+    res->val.field.var = n;
+    res->val.field.field = std::string(field);
+
+    // res->val.field.type needs to be determined
+    // by looking at some kind of a symbol table
+
+    return res;
 }
 
 ast_node_t* field_node(ast_node_t* n, char* field){

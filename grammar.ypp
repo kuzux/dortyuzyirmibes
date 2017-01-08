@@ -38,7 +38,7 @@ ast_node_t* root;
 
 %%
 
-program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT { $$ = $4; $$.node->val.prog.name = std::string($2.str); }
+program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT { $$ = $4; $$.node->val.prog.name = std::string($2.str); root = $$; }
 
 progBlock: constantDefns typeDefns varDefns procFuncDefns stmts { $$.node = prog_node($1.ns, $2.ns, $3.ns, $4.ns, $5.ns); }
 
