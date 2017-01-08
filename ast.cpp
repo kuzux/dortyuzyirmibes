@@ -16,7 +16,7 @@ void copy_types(type_t& t1, type_t& t2) {
     // that doesn't work with function types
     t1.type = t2.type;
     t1.val.array.len = t2.val.array.len;
-    t1.val.array.name = t2.val.array.name;
+    t1.val.array.elem = t2.val.array.elem;
 }
 
 ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts) {
@@ -50,6 +50,29 @@ ast_node_t* indexed_node(ast_node_t* n, vector<ast_node_t*>* ns){
     res->val.indexed_var.var_access = n;
     res->val.indexed_var.indices = ns;
 
+    type_t type;
+
+    switch(n->val.plain_var.var_type) {
+        case VAR_PLAIN:
+            copy_types(type, n->val.plain_var.type);
+            break;
+        case VAR_INDEXED:
+            copy_types(type, n->val.indexed_var.type);
+            break;
+        case VAR_FIELD:
+            copy_types(type, n->val.field.type);
+            break;
+    }
+
+    copy_types(type, *type.val.array.elem);
+
+    if(type.type==TYPE_ARRAY){
+        copy_types(res->val.plain_var.type, type);
+    } else {
+        cout << "LHS not an array" << endl;
+        exit(1);
+    }
+
     return res;
 }
 
@@ -82,6 +105,26 @@ ast_node_t* fn_call(char* fn, vector<ast_node_t*>* ns){
     res->val.fn_call.name = std::string(fn);
     res->val.fn_call.params = ns;
 
+    map<string, type_t>::iterator it = fn_types.find(string(fn));
+
+    if(it != fn_types.end()) {
+        if(it->second.type == TYPE_FUNCTION) {
+            // check arity only
+            if(it->second.val.fn.args->size() == ns->size()) {
+                copy_types(res->val.fn_call.type, *it->second.val.fn.retval);
+            } else {
+                cout << "Wrong number of arguments for " << fn << endl;
+                exit(1);
+            }
+        } else {
+            cout << fn << " is not a function" << endl;
+            exit(1);
+        }
+    } else {
+        cout << fn << " is undefined" << endl;
+        exit(1);
+    }
+
     return res;
 }
 
@@ -109,6 +152,8 @@ ast_node_t* factor_fn(ast_node_t* call){
     res->val.factor.fn_call = call;
     res->val.factor.var_access = NULL;
     res->val.factor.number = 0;
+
+    copy_types(res->val.factor.type, call->val.fn_call.type);
 
     return res;
 }

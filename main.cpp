@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "ast.h"
-#include "types.h"
 
 extern int yyparse();
 extern FILE* yyin;
@@ -28,10 +27,8 @@ int main(int argc, char** argv) {
     // (preferably while parsing)
 
     // type_calc done while parsing
-    type_check(root);
-
-    // todo calculate types
-    // todo check types
+    // so is type_check
+    
     // todo actually generate llvm code
 
     fclose(fp);
