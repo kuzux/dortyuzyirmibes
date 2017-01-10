@@ -34,10 +34,17 @@ using namespace std;
 
 #define NODE_FNCALL -21
 
+#define NODE_COND_EXPR -22
+#define NODE_PROCCALL -23
+#define NODE_VALPARAM -24
+#define NODE_VARPARAM -25
+#define NODE_IDENTIFIER -26
+
 #define TYPE_INT 1
 #define TYPE_ARRAY 2
 #define TYPE_RECORD 3
 #define TYPE_FUNCTION 4
+#define TYPE_CUSTOM 5
 
 #define VAR_PLAIN 1
 #define VAR_INDEXED 2
@@ -96,17 +103,23 @@ typedef struct ast_node {
         } ass;
 
         struct {
-            struct ast_node* expr;
+            struct ast_node* varAcc;
         } read, print;
 
         struct {
             struct ast_node* cond;
             struct ast_node* stmt;
-        } if_, while_;
+        } while_;
+
+        struct {
+            struct ast_node* cond;
+            struct ast_node* stmt;
+            struct ast_node* elseStmt;
+        } if_;
 
         struct {
             struct ast_node* start;
-            char* direction;
+            int direction;
             struct ast_node* end;
             struct ast_node* stmt;
         } for_;
@@ -159,7 +172,7 @@ typedef struct ast_node {
             vector<struct ast_node*>* indices;
 
             type_t type;
-        } indexed_var;
+        } indexed_var; /* check if there should have been 'string identifier' */
 
         struct {
             int var_type;
@@ -169,6 +182,51 @@ typedef struct ast_node {
 
             type_t type;
         } field;
+
+
+        //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        struct {
+            string constName;
+            int value;
+        } constant;
+        
+        struct{
+            
+            struct ast_node* lval;
+            int relop;
+            struct ast_node* rval;
+
+        } conditionalExpr;
+
+        struct {
+            string name;
+            vector<struct ast_node*>* params;
+        } proc_call;
+
+        struct{
+            strint id;
+
+        } ident;
+
+        struct{
+            type_t type;
+        } typeDef;
+
+        struct{
+            type_t type;
+            vector<struct ast_node*>* ids;
+        } variableParam, valueParam;
+
+        struct{
+
+            type_t type;
+        } retType;
+
+        struct{
+
+
+        } ;
+
     } val;
 } ast_node_t;
 
@@ -188,6 +246,25 @@ ast_node_t* factor_varacc(ast_node_t* acc);
 ast_node_t* factor_num(int n);
 ast_node_t* term(ast_node_t* t, ast_node_t* f, char op);
 ast_node_t* expr(ast_node_t* ex, ast_node_t* t, char op);
+
+
+ast_node_t* constant(char* id, int val);
+ast_node_t* forloop(ast_node_t* start, int direction, ast_node_t* end, ast_node_t* stmt);
+ast_node_t* whileloop(ast_node_t* cond, ast_node_t* stmt);
+ast_node_t* ifstmt_1(ast_node_t* cond, ast_node_t* stmt);
+ast_node_t* ifstmt_2(ast_node_t* cond, ast_node_t* stmt, ast_node_t* elseStmt);
+ast_node_t* printstmt(ast_node_t* varAcc);
+ast_node_t* readstmt(ast_node_t* varAcc);
+ast_node_t* condExpr_2(ast_node_t* lval);
+ast_node_t* condExpr_1(ast_node_t* lval, int relop, ast_node_t* rval);
+ast_node_t* proc_call(char* fn, vector<ast_node_t*>* ns);
+ast_node_t* assgn(ast_node_t* lval, ast_node_t* rval);
+ast_node_t* block(vector<ast_node_t*>* varDefns, vector<ast_node_t*>* stmts);
+ast_node_t* stmts(vector<ast_node_t*>* stmts);
+ast_node_t* identifier(char* id);
+
+ast_node_t* typeDefn(char* id, ast_node_t* type);
+
 
 }
 

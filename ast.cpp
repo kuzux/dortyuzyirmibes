@@ -19,21 +19,28 @@ void copy_types(type_t& t1, type_t& t2) {
     t1.val.array.elem = t2.val.array.elem;
 }
 
+void copy_fntypes(type_t& t1, type_t& t2) {
+    // that doesn't work with function types
+    t1.type = t2.type;
+    t1.val.fn.args = t2.val.fn.args;
+    t1.val.fn.retval = t2.val.fn.retval;
+}
+
 ast_node_t* prog_node(vector<ast_node_t*>* consts, vector<ast_node_t*>* types, vector<ast_node_t*>* vars, vector<ast_node_t*>* funcs, vector<ast_node_t*>* stmts) {
     ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
 
-    res->type = NODE_FIELD;
+    res->type = NODE_PROG;
+    res->val.prog.consts = consts;
+    res->val.prog.types  = types;
+    res->val.prog.vars   = vars;
+    res->val.prog.funcs  = funcs;
+    res->val.prog.stmts  = stmts;
 
-    res->val.field.var_type = VAR_PLAIN;
-
-    res->val.field.var = n;
-    res->val.field.field = std::string(field);
-
-    // res->val.field.type needs to be determined
-    // by looking at some kind of a symbol table
+    
 
     return res;
 }
+
 
 ast_node_t* field_node(ast_node_t* n, char* field){
     ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
@@ -76,10 +83,10 @@ ast_node_t* indexed_node(ast_node_t* n, vector<ast_node_t*>* ns){
             break;
     }
 
-    copy_types(type, *type.val.array.elem);
+    copy_types(type, *type.val.array.elem); /* check */
 
     if(type.type==TYPE_ARRAY){
-        copy_types(res->val.plain_var.type, type);
+        copy_types(res->val.plain_var.type, type); /* check */
     } else {
         cout << "LHS not an array" << endl;
         exit(1);
@@ -244,7 +251,7 @@ ast_node_t* expr(ast_node_t* ex, ast_node_t* t, char op){
     res->val.expr.op = op;
 
     bool e_int = (ex->type == NODE_EXPR && ex->val.expr.type.type == TYPE_INT)
-        || (ex->type == NODE_TERM && ex->val.expr.type.type == TYPE_INT)
+        || (ex->type == NODE_TERM && ex->val.term.type.type == TYPE_INT) /* check if ex->val.term.type.type == TYPE_INT*/
         || (ex->type == NODE_FACTOR && ex->val.factor.type.type == TYPE_INT);
     bool t_int = (t->type == NODE_TERM && t->val.term.type.type == TYPE_INT)
         || (t->type == NODE_FACTOR && t->val.factor.type.type == TYPE_INT);
@@ -258,3 +265,211 @@ ast_node_t* expr(ast_node_t* ex, ast_node_t* t, char op){
 
     return res;
 }
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ast_node_t* constant(char* id, int val){
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->val.constant.constName = std::string(id);
+    res->val.constant.value = val;
+
+
+    return res;
+}
+
+
+ast_node_t* forloop(ast_node_t* start, int direction, ast_node_t* end, ast_node_t* stmt) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_FOR_STMT;
+    
+    res->val.for_.start = start;
+    res->val.for_.direction = direction;
+    res->val.for_.end = end;
+    res->val.for_.stmt = stmt;
+    
+    //todo check direction
+    return res;
+}
+
+ast_node_t* whileloop(ast_node_t* cond, ast_node_t* stmt) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_WHILE_STMT;
+    
+    res->val.while_.cond = cond;
+    res->val.while_.stmt = stmt;
+    
+    return res;
+}
+
+ast_node_t* ifstmt_1(ast_node_t* cond, ast_node_t* stmt) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_IF_STMT;
+    
+    res->val.if_.cond = cond;
+    res->val.if_.stmt = stmt;
+    res->val.if_.elseStmt = NULL;
+    
+    return res;   
+}
+
+ast_node_t* ifstmt_2(ast_node_t* cond, ast_node_t* stmt, ast_node_t* elseStmt) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_IF_STMT;
+    
+    res->val.if_.cond = cond;
+    res->val.if_.stmt = stmt;
+    res->val.if_.elseStmt = elseStmt;
+    
+    return res;   
+}
+
+
+ast_node_t* printstmt(ast_node_t* varAcc) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_PRINT_STMT;
+    
+    res->val.print.varAcc = varAcc;
+    
+    return res; 
+
+}
+
+ast_node_t* readstmt(ast_node_t* varAcc) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_READ_STMT;
+    
+    res->val.read.varAcc = varAcc;
+    
+    return res; 
+
+}
+
+ast_node_t* condExpr_1(ast_node_t* lval, int relop, ast_node_t* rval) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_COND_EXPR;
+    
+    res->val.conditionalExpr.lval = lval;
+    res->val.conditionalExpr.relop = relop;
+    res->val.conditionalExpr.rval = rval;
+    
+    return res; 
+
+}
+ast_node_t* condExpr_2(ast_node_t* lval) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_COND_EXPR;
+
+    res->val.conditionalExpr.lval = lval;
+    res->val.conditionalExpr.relop = 5;
+    res->val.conditionalExpr.rval = factor_num(0); //check if works
+    
+    return res; 
+
+}
+
+
+ast_node_t* proc_call(char* name, vector<ast_node_t*>* ns){
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_PROCCALL;
+    //todo check if proc exists
+
+    res->val.proc_call.name = std::string(name);
+    res->val.proc_call.params = ns;
+
+
+    return res;
+}
+
+ast_node_t* assgn(ast_node_t* lval, ast_node_t* rval) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_ASS_STMT;
+    //todo check if variable exists
+    res->val.ass.lval = lval;
+    res->val.ass.rval = rval;
+
+
+    return res;
+
+}
+
+ast_node_t* block(vector<ast_node_t*>* vars, vector<ast_node_t*>* stmts) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_BLOCK;
+
+    res->val.block.vars  = vars;
+    res->val.block.stmts = stmts;
+
+
+    return res;
+
+}
+
+ast_node_t* stmts(vector<ast_node_t*>* stmts) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_STMT_BLOCK;
+
+    res->val.stmt_block.stmts = stmts;
+
+
+    return res;
+
+}
+
+ast_node_t* identifier(char* id) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_IDENTIFIER;
+
+    res->val.ident.id = std::string(id);
+
+
+    return res;
+
+
+}
+
+
+
+
+
+ast_node_t* typeDefn(char* id, ast_node_t* type) {
+    ast_node_t* res = (ast_node_t*)malloc(sizeof(ast_node_t));
+
+    res->type = NODE_TYPE;
+
+
+    res->val.typeDef.type.val.name = std::string(id);
+    //TODO copy type
+
+
+    return res;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

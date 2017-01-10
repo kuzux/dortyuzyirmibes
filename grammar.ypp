@@ -38,49 +38,50 @@ ast_node_t* root;
 
 %%
 
-program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT { $$ = $4; $$.node->val.prog.name = std::string($2.str); root = $$; }
+program: PROGRAM IDENTIFIER SEMICOLON progBlock DOT { $$ = $4; $$.node->val.prog.name = std::string($2.str); root = $$.node; } /* check, it was root=$$*/
 
 progBlock: constantDefns typeDefns varDefns procFuncDefns stmts { $$.node = prog_node($1.ns, $2.ns, $3.ns, $4.ns, $5.ns); }
 
-block: varDefns stmts
+block: varDefns stmts { $$.node= block($1.ns, $2.ns); }
 
-constantDefns: /* empty */
-             | CONSTANTS constantList
-constantList: constantList constDefn
-            | constDefn
-constDefn: IDENTIFIER EQUALS NUMBER SEMICOLON
+constantDefns: /* empty */ { $$.ns = new std::vector<ast_node_t*>(); }
+             | CONSTANTS constantList { $$.ns = $2.ns; }
+constantList: constantList constDefn { $1.ns->push_back($2.node); }
+            | constDefn { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
+constDefn: IDENTIFIER EQUALS NUMBER SEMICOLON { $$.node = constant($1.str, $3.n); }
 
-typeDefns: /* empty */
-         | TYPES typeList
-typeList: typeList typeDefn 
-        | typeDefn
+typeDefns: /* empty */  { $$.ns = new std::vector<ast_node_t*>(); }
+         | TYPES typeList { $$.ns = $2.ns; }
+typeList: typeList typeDefn { $1.ns->push_back($2.node); }
+        | typeDefn { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
 typeDefn: IDENTIFIER EQUALS typeDenoter SEMICOLON
 typeDenoter: INTEGER
            | IDENTIFIER
            | newType
-newType: arrayType
-       | recordType
+newType: arrayType { $$.node = $1.node; }
+       | recordType { $$.node = $1.node; }
 arrayType: ARRAY SQBR_ON NUMBER SQBR_OFF OF typeDenoter
 recordType: RECORD recordItemList END
-recordItemList: recordItemList SEMICOLON recordItem 
-              | recordItem
+recordItemList: recordItemList SEMICOLON recordItem { $1.ns->push_back($3.node); }
+              | recordItem { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
               | error
 recordItem: identifierList COLON typeDenoter
-identifierList: identifierList COMMA IDENTIFIER
-              | IDENTIFIER
+identifierList: identifierList COMMA IDENTIFIER  { $1.ns->push_back(identifier($3.str)); }
+              | IDENTIFIER { $$.node = identifier($1.str); }
 
-varDefns: /* empty */
-        | VAR varDefnList
-varDefnList: varDefnList varDefn
-           | varDefn SEMICOLON
+varDefns: /* empty */ { $$.ns = new std::vector<ast_node_t*>(); }
+        | VAR varDefnList { $$.ns = $2.ns; }
+varDefnList: varDefnList varDefn { $1.ns->push_back($2.node); }
+           | varDefn SEMICOLON { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
            | error SEMICOLON
-varDefn: identifierList COLON typeDenoter
+varDefn: identifierList COLON typeDenoter 
 
-procFuncDefns: /* empty */
+procFuncDefns: /* empty */ { $$.ns = new std::vector<ast_node_t*>(); }
              | procFuncDefnList SEMICOLON
-procFuncDefnList: procFuncDefnList SEMICOLON procFuncDefn 
-                | procFuncDefn
-procFuncDefn: procDefn | funcDefn
+procFuncDefnList: procFuncDefnList SEMICOLON procFuncDefn { $1.ns->push_back($3.node); }
+                | procFuncDefn { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
+procFuncDefn: procDefn { $$.node = $1.node; }
+            | funcDefn { $$.node = $1.node; }
 procDefn: procHead SEMICOLON FORWARD
         | procHead SEMICOLON block
 procHead: PROCEDURE IDENTIFIER
@@ -92,61 +93,67 @@ funcHead: FUNCTION IDENTIFIER COLON returnType
 returnType: INTEGER
           | IDENTIFIER
 formalParamList: PAR_ON formalParamSecList PAR_OFF
-formalParamSecList: formalParamSecList SEMICOLON formalParam
-                  | formalParam
+formalParamSecList: formalParamSecList SEMICOLON formalParam { $1.ns->push_back($3.node); }
+                  | formalParam { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
                   | error 
-formalParam: valueParam 
-           | variableParam
+formalParam: valueParam { $$.node = $1.node; }
+           | variableParam { $$.node = $1.node; }
 valueParam: identifierList COLON returnType
 variableParam: VAR identifierList COLON returnType
 
-stmts: CURLY_ON stmtList CURLY_OFF 
-stmtList: stmtList SEMICOLON stmt 
-        | stmt
+stmts: CURLY_ON stmtList CURLY_OFF { $$.node =  stmts($2.ns); }//
+stmtList: stmtList SEMICOLON stmt { $1.ns->push_back($3.node); }
+        | stmt { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
         | error
-stmt: assignmentStmt
-    | ioStmt
-    | procStmt
-    | stmts
-    | ifStmt
-    | whileStmt
-    | forStmt
+stmt: assignmentStmt { $$.node = $1.node; }
+    | ioStmt { $$.node = $1.node; }
+    | procStmt { $$.node = $1.node; }
+    | stmts{ $$.node = $1.node; } //
+    | ifStmt { $$.node = $1.node; }
+    | whileStmt { $$.node = $1.node; }
+    | forStmt { $$.node = $1.node; }
 
-assignmentStmt: variableAccess EQUALS expr
+assignmentStmt: variableAccess EQUALS expr { $$.node = assgn($1.node, $3.node); }
 variableAccess: IDENTIFIER { $$.node = var_access($1.str); }
               | indexedVariable { $$.node = $1.node; }
               | fieldDesignator { $$.node = $1.node; }
 
-indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF { $$.node = indexed_node($1.node, $2.ns); }
-indexExprList: indexExprList COMMA expr { $1.ns->push_back($2.node); }
-             | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
+indexedVariable: variableAccess SQBR_ON indexExprList SQBR_OFF { $$.node = indexed_node($1.node, $3.ns); } /* check */
+indexExprList: indexExprList COMMA expr { $1.ns->push_back($3.node); } /* check */
+             | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); } 
              | error
 
-fieldDesignator: variableAccess DOT IDENTIFIER { $$.node = field_node($1.node, $2.str); }
+fieldDesignator: variableAccess DOT IDENTIFIER { $$.node = field_node($1.node, $3.str); }  /* check */
                | variableAccess DOT error
-ioStmt: PRINT PAR_ON variableAccess PAR_OFF
-      | READ PAR_ON variableAccess PAR_OFF
+ioStmt: PRINT PAR_ON variableAccess PAR_OFF { $$.node = printstmt($3.node); }
+      | READ PAR_ON variableAccess PAR_OFF { $$.node = readstmt($3.node); }
 
-procStmt: IDENTIFIER params
-params: PAR_ON paramList PAR_OFF { $$.ns = $1.ns; }
-      | PAR_ON PAR_OFF { $$.ns = new std::vector<ast_node_t*>; }
-paramList: paramList COMMA expr { $1.ns->push_back($2.node); }
+procStmt: IDENTIFIER params { $$.node = proc_call($1.str, $2.ns); }
+params: PAR_ON paramList PAR_OFF { $$.ns = $2.ns; } /* check */
+      | PAR_ON PAR_OFF { $$.ns = new std::vector<ast_node_t*>(); }
+paramList: paramList COMMA expr { $1.ns->push_back($3.node); }  /* check */
          | expr { $$.ns = new std::vector<ast_node_t*>(); $$.ns->push_back($1.node); }
 
-ifStmt: IF condExpr THEN stmt
-      | IF condExpr THEN stmt ELSE stmt
+ifStmt: IF condExpr THEN stmt { $$.node = ifstmt_1($2.node, $4.node); }
+      | IF condExpr THEN stmt ELSE stmt { $$.node = ifstmt_2($2.node, $4.node, $6.node); }
 
-whileStmt: WHILE condExpr DO stmt
+whileStmt: WHILE condExpr DO stmt { $$.node =  whileloop($2.node, $4.node); }
 
-condExpr: expr relop expr
-        | expr 
-relop: EQ | NEQ | GT | LT | GEQ | LEQ
+condExpr: expr relop expr { $$.node = condExpr_1($1.node, $2.n, $3.node); }
+        | expr { $$.node = condExpr_2($1.node); }
+relop: EQ  { $$.n = 1; }
+     | NEQ { $$.n = 2; }
+     | GT  { $$.n = 3; }
+     | LT  { $$.n = 4; }
+     | GEQ { $$.n = 5; }
+     | LEQ { $$.n = 6; }
 
-forStmt: FOR IDENTIFIER COLON_EQ expr direction expr DO stmt
-direction: UPTO | DOWNTO
+forStmt: FOR IDENTIFIER COLON_EQ expr direction expr DO stmt { $$.node = forloop($4.node, $5.n, $6.node, $8.node); }
+direction: UPTO { $$.n = 1; }
+         | DOWNTO { $$.n = 2; }
 
-expr: expr PLUS term { $$.node = expr($1.node, $3.node, '+'); }
-    | expr MINUS term { $$.node = expr($1.node, $3.node, '+'); }
+expr: expr PLUS term { $$.node = expr($1.node, $3.node, '+'); } 
+    | expr MINUS term { $$.node = expr($1.node, $3.node, '-'); } /* check */
     | term { $$.node = $1.node; }
 term: term MULT factor { $$.node = term($1.node, $3.node, '*'); }
     | term DIV factor { $$.node = term($1.node, $3.node, '/'); }
